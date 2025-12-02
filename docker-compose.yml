@@ -36,5 +36,25 @@ services:
     volumes:
       - ./api:/app
 
+  products:
+    build:
+      context: ./products/products
+      dockerfile: Dockerfile
+    container_name: products-microfrontend
+    ports:
+      - "4201:80"
+    depends_on:
+      - api
+
+  shell:
+    build:
+      context: ./shell/shell
+      dockerfile: Dockerfile
+    container_name: shell-microfrontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - products
+
 volumes:
   mysql_data:

@@ -85,3 +85,6 @@ api/htmlcov/
 
 # Docker volumes
 mysql_data/
+
+# Documentation
+docs/
