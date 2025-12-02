@@ -1,32 +1,57 @@
-from database import SessionLocal, engine, Base
-from models import Product
+import pymysql
+import os
 
-def seed_products():
-    db = SessionLocal()
+def seed_database():
+    conn = pymysql.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "8877")),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "rootpassword"),
+        database=os.getenv("DB_NAME", "products_db")
+    )
 
-    # Check if products already exist
-    if db.query(Product).count() > 0:
-        print("Products already exist in database. Skipping seed.")
-        db.close()
+    cursor = conn.cursor()
+
+    # Create table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id INT PRIMARY KEY,
+            name VARCHAR(255),
+            category VARCHAR(100),
+            price FLOAT,
+            stock INT
+        )
+    """)
+
+    # Check if already seeded
+    cursor.execute("SELECT COUNT(*) FROM products")
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        print("Products already exist. Skipping seed.")
+        cursor.close()
+        conn.close()
         return
 
-    # Create tables if they don't exist
-    Base.metadata.create_all(bind=engine)
-
-    # Products from the hardcoded HTML
+    # Insert products
     products = [
-        Product(id=1, name="Laptop Pro", category="Electronics", price=1299.99, stock=25),
-        Product(id=2, name="Wireless Headphones", category="Audio", price=199.99, stock=50),
-        Product(id=3, name="Smart Watch", category="Wearables", price=349.99, stock=30),
-        Product(id=4, name="Gaming Mouse", category="Accessories", price=79.99, stock=100),
-        Product(id=5, name="4K Monitor", category="Electronics", price=599.99, stock=15),
-        Product(id=6, name="Bluetooth Speaker", category="Audio", price=89.99, stock=75)
+        (1, "Laptop Pro", "Electronics", 1299.99, 25),
+        (2, "Wireless Headphones", "Audio", 199.99, 50),
+        (3, "Smart Watch", "Wearables", 349.99, 30),
+        (4, "Gaming Mouse", "Accessories", 79.99, 100),
+        (5, "4K Monitor", "Electronics", 599.99, 15),
+        (6, "Bluetooth Speaker", "Audio", 89.99, 75)
     ]
 
-    db.add_all(products)
-    db.commit()
-    print(f"Successfully seeded {len(products)} products!")
-    db.close()
+    cursor.executemany(
+        "INSERT INTO products (id, name, category, price, stock) VALUES (%s, %s, %s, %s, %s)",
+        products
+    )
+
+    conn.commit()
+    print(f"Seeded {len(products)} products!")
+    cursor.close()
+    conn.close()
 
 if __name__ == "__main__":
-    seed_products()
+    seed_database()

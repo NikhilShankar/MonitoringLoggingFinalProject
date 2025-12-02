@@ -1,46 +1,44 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from prometheus_fastapi_instrumentator import Instrumentator
-from typing import List
+import pymysql
+import os
 
-from database import get_db, engine, Base
-from models import Product
-from schemas import ProductResponse
+app = FastAPI()
 
-app = FastAPI(title="Products API", version="1.0.0")
-
-# Enable CORS for Angular microfrontends
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://localhost:4201"],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize Prometheus metrics
 Instrumentator().instrument(app).expose(app)
 
-# Create tables on startup
-Base.metadata.create_all(bind=engine)
+def get_db_connection():
+    return pymysql.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "8877")),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "rootpassword"),
+        database=os.getenv("DB_NAME", "products_db"),
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
 @app.get("/")
 def root():
-    return {"message": "Products API is running", "docs": "/docs"}
+    return {"message": "Products API", "docs": "/docs"}
 
-@app.get("/api/products", response_model=List[ProductResponse])
-def get_products(db: Session = Depends(get_db)):
-    products = db.query(Product).all()
+@app.get("/api/products")
+def get_products():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM products")
+    products = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return products
 
-@app.get("/api/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
-
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+def health():
+    return {"status": "ok"}
