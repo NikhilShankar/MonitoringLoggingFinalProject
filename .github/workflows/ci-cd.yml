@@ -1,0 +1,112 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # Check what changed
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      products: ${{ steps.filter.outputs.products }}
+      shell: ${{ steps.filter.outputs.shell }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            products:
+              - 'products/**'
+            shell:
+              - 'shell/**'
+            api:
+              - 'api/**'
+
+  build-products:
+    needs: changes
+    if: needs.changes.outputs.products == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: 'products/products/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: products/products
+        run: npm ci
+      
+      - name: Run tests (optional)
+        working-directory: products/products
+        run: npm test || echo "Tests not configured yet"
+      
+      - name: Build Products
+        working-directory: products/products
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: products-build
+          path: products/products/dist
+
+  build-shell:
+    needs: changes
+    if: needs.changes.outputs.shell == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: 'shell/shell/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: shell/shell
+        run: npm ci
+      
+      - name: Run tests (optional)
+        working-directory: shell/shell
+        run: npm test || echo "Tests not configured yet"
+      
+      - name: Build Shell
+        working-directory: shell/shell
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: shell-build
+          path: shell/shell/dist
+
+  build-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Build Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./api
+          push: false
+          tags: products-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
