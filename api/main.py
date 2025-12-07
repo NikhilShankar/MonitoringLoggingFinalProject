@@ -1,21 +1,28 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 import pymysql
 import os
 import logging
+from pythonjsonlogger import jsonlogger
 
-
-# Logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+# -------------------------------------------------
+# JSON Logging configuration
+# -------------------------------------------------
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter(
+    '%(asctime)s %(levelname)s %(name)s %(message)s'
 )
+logHandler.setFormatter(formatter)
 
 logger = logging.getLogger("products-api")
+logger.setLevel(logging.INFO)
+logger.addHandler(logHandler)
 
 
-# FastAPI App
+# -------------------------------------------------
+# FastAPI
+# -------------------------------------------------
 app = FastAPI()
 
 app.add_middleware(
@@ -28,7 +35,9 @@ app.add_middleware(
 Instrumentator().instrument(app).expose(app)
 
 
-# DB Connection
+# -------------------------------------------------
+# DB
+# -------------------------------------------------
 def get_db_connection():
     return pymysql.connect(
         host=os.getenv("DB_HOST", "localhost"),
@@ -40,33 +49,51 @@ def get_db_connection():
     )
 
 
+# -------------------------------------------------
 # Endpoints
+# -------------------------------------------------
 @app.get("/")
 def root():
-    logger.info("Root endpoint called")
+    logger.info("root_called")
     return {"message": "Products API", "docs": "/docs"}
 
 
 @app.get("/api/products")
-def get_products():
-    logger.info("GET /api/products called")
+async def get_products(request: Request):
+    logger.info(
+        "products_request",
+        extra={
+            "endpoint": "/api/products",
+            "client": request.client.host
+        }
+    )
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
     cursor.close()
     conn.close()
+
     return products
 
 
 @app.get("/health")
 def health():
-    logger.info("Health endpoint called")
+    logger.info("health_called")
     return {"status": "ok"}
 
 
-# Error Simulation (for logging test)
+# -------------------------------------------------
+# Force Error to test logs
+# -------------------------------------------------
 @app.get("/force-error")
-def force_error():
-    logger.error("Forced error triggered by user!")
-    raise Exception("Forced exception for testing logs")
+def force_error(request: Request):
+    logger.error(
+        "forced_error_triggered",
+        extra={
+            "endpoint": "/force-error",
+            "client": request.client.host
+        }
+    )
+    raise Exception("Generated error to test logging")
