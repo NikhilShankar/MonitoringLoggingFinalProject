@@ -36,7 +36,7 @@ Instrumentator().instrument(app).expose(app)
 
 
 # -------------------------------------------------
-# DB
+# DB Connection
 # -------------------------------------------------
 def get_db_connection():
     return pymysql.connect(
@@ -53,18 +53,29 @@ def get_db_connection():
 # Endpoints
 # -------------------------------------------------
 @app.get("/")
-def root():
-    logger.info("root_called")
+async def root(request: Request):
+
+    logger.info(
+        "root_called",
+        extra={
+            "client": request.client.host,
+            "method": request.method,
+            "endpoint": request.url.path,
+        }
+    )
+
     return {"message": "Products API", "docs": "/docs"}
 
 
 @app.get("/api/products")
 async def get_products(request: Request):
+
     logger.info(
-        "products_request",
+        "request_products",
         extra={
-            "endpoint": "/api/products",
-            "client": request.client.host
+            "client": request.client.host,
+            "method": request.method,
+            "endpoint": request.url.path,
         }
     )
 
@@ -79,21 +90,33 @@ async def get_products(request: Request):
 
 
 @app.get("/health")
-def health():
-    logger.info("health_called")
+async def health(request: Request):
+
+    logger.info(
+        "health_check",
+        extra={
+            "client": request.client.host,
+            "method": request.method,
+            "endpoint": request.url.path,
+        }
+    )
+
     return {"status": "ok"}
 
 
 # -------------------------------------------------
-# Force Error to test logs
+# Error Simulation (for logging)
 # -------------------------------------------------
 @app.get("/force-error")
-def force_error(request: Request):
+async def force_error(request: Request):
+
     logger.error(
-        "forced_error_triggered",
+        "forced_error",
         extra={
-            "endpoint": "/force-error",
-            "client": request.client.host
+            "client": request.client.host,
+            "method": request.method,
+            "endpoint": request.url.path,
         }
     )
-    raise Exception("Generated error to test logging")
+
+    raise Exception("Forced Exception for logging demonstration")
