@@ -7,7 +7,6 @@ on:
     branches: [main, master]
 
 jobs:
-  # Check what changed
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -29,7 +28,7 @@ jobs:
 
   build-products:
     needs: changes
-    if: needs.changes.outputs.products == 'true'
+    # if: needs.changes.outputs.products == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +60,7 @@ jobs:
 
   build-shell:
     needs: changes
-    if: needs.changes.outputs.shell == 'true'
+    # if: needs.changes.outputs.shell == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -93,7 +92,7 @@ jobs:
 
   build-api:
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    # if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
