@@ -6,6 +6,7 @@ This Grafana dashboard visualizes API performance metrics collected by Prometheu
 - **http_requests_total** – Total count of HTTP requests
 - **Request latency** – Time taken to serve API requests (ms)
 
+
 ### Purpose
 These panels help track API traffic and ensure the service is healthy and responding efficiently.
 
