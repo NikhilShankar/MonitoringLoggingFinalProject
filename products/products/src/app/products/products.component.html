@@ -1,6 +1,10 @@
 <div class="products-container">
   <h1>Products Catalog</h1>
-  <table class="products-table">
+
+  <div *ngIf="loading">Loading products...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table class="products-table" *ngIf="!loading && !error">
     <thead>
       <tr>
         <th>ID</th>
@@ -11,47 +15,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>1</td>
-        <td>Laptop Pro</td>
-        <td>Electronics</td>
-        <td>$1,299.99</td>
-        <td>25</td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>Wireless Headphones</td>
-        <td>Audio</td>
-        <td>$199.99</td>
-        <td>50</td>
-      </tr>
-      <tr>
-        <td>3</td>
-        <td>Smart Watch</td>
-        <td>Wearables</td>
-        <td>$349.99</td>
-        <td>30</td>
-      </tr>
-      <tr>
-        <td>4</td>
-        <td>Gaming Mouse</td>
-        <td>Accessories</td>
-        <td>$79.99</td>
-        <td>100</td>
-      </tr>
-      <tr>
-        <td>5</td>
-        <td>4K Monitor</td>
-        <td>Electronics</td>
-        <td>$599.99</td>
-        <td>15</td>
-      </tr>
-      <tr>
-        <td>6</td>
-        <td>Bluetooth Speaker</td>
-        <td>Audio</td>
-        <td>$89.99</td>
-        <td>75</td>
+      <tr *ngFor="let product of products">
+        <td>{{ product.id }}</td>
+        <td>{{ product.name }}</td>
+        <td>{{ product.category }}</td>
+        <td>${{ product.price }}</td>
+        <td>{{ product.stock }}</td>
       </tr>
     </tbody>
   </table>
