@@ -1,24 +1,37 @@
-# Monitoring Dashboard – Zafar (9027671)
+Logging with FastAPI, Prometheus, Grafana, Loki & Promtail
 
-This Grafana dashboard visualizes API performance metrics collected by Prometheus.
+It includes FastAPI, MySQL, Prometheus, Grafana, Loki, and Promtail, all running through Docker Compose. Prometheus automatically scrapes /metrics while Grafana provides dashboards for visualization. Promtail collects container logs and forwards them to Loki, which can be queried inside Grafana → Explore.
 
-### Metrics Displayed
-- **http_requests_total** – Total count of HTTP requests
-- **Request latency** – Time taken to serve API requests (ms)
+To run the project:
+```
+docker-compose up -d
+```
 
-### Purpose
-These panels help track API traffic and ensure the service is healthy and responding efficiently.
+Endpoints:
 
-## Screenshots
+http://localhost:5000/api/products
 
-### 1️⃣ Prometheus Target Health
-![Prometheus Targets](screenshots/01-prometheus-targets.png)
-_Verifies that Prometheus successfully scrapes API metrics, job state is UP._
+http://localhost:5000/metrics
 
-### 2️⃣ Grafana Prometheus Data Source
-![Grafana Data Source](screenshots/02-grafana-datasource.png)
-_Grafana is connected to Prometheus and data source is working._
+http://localhost:3000/dashboards
+ (Grafana)
 
-### 3️⃣ Grafana API Monitoring Dashboard
-![Grafana Dashboard](screenshots/03-grafana-dashboard-requests.png)
-_API request metrics displayed through the http_requests_total metric._
+![grf](screenshots/grafana.pnggrafana.png)
+
+![logs](screenshots/dockerlogs.png)
+
+![rq](screenshots/requests.png)
+
+![api](screenshots/api.png)
+
+http://localhost:9090
+ (Prometheus)
+
+ ![Prometheus](screenshots/prometheus.png)
+
+A test endpoint /force-error generates logs to verify that Loki and Promtail are working correctly.
+
+Stopping the Environment
+```
+docker-compose down
+```
