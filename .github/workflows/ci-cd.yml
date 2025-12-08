@@ -31,7 +31,7 @@ jobs:
 
   build-products:
     needs: changes
-    if: needs.changes.outputs.products == 'true'
+    # if: needs.changes.outputs.products == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -63,7 +63,7 @@ jobs:
 
   build-shell:
     needs: changes
-    if: needs.changes.outputs.shell == 'true'
+    # if: needs.changes.outputs.shell == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -116,7 +116,7 @@ jobs:
 
   build-api:
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    # if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -135,13 +135,6 @@ jobs:
 
   test-docker-compose:
     needs: [build-products, build-shell, build-api]
-    if: |
-      always() && 
-      !cancelled() &&
-      (needs.changes.outputs.api == 'true' || 
-       needs.changes.outputs.products == 'true' || 
-       needs.changes.outputs.shell == 'true' || 
-       needs.changes.outputs.compose == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
