@@ -2,6 +2,10 @@ FROM node:16 as build
 
 WORKDIR /app
 
+# Accept build argument for products URL
+ARG PRODUCTS_URL=http://localhost:4201
+ENV PRODUCTS_URL=${PRODUCTS_URL}
+
 COPY package*.json ./
 RUN npm install
 

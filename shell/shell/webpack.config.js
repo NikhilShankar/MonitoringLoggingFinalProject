@@ -4,6 +4,9 @@ const mf = require("@angular-architects/module-federation/webpack");
 const path = require("path");
 const share = mf.share;
 
+// Use environment variable for products URL, default to localhost for development
+const productsUrl = process.env.PRODUCTS_URL || "http://localhost:4201";
+
 module.exports = {
   output: {
     uniqueName: "shell",
@@ -16,7 +19,7 @@ module.exports = {
     new ModuleFederationPlugin({
       // Remotes: other microfrontends that Shell will consume
       remotes: {
-        products: "products@http://localhost:4201/remoteEntry.js",
+        products: `products@${productsUrl}/remoteEntry.js`,
       },
       shared: share({
         "@angular/core": {
