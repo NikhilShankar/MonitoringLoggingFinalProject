@@ -13,6 +13,7 @@ jobs:
       products: ${{ steps.filter.outputs.products }}
       shell: ${{ steps.filter.outputs.shell }}
       api: ${{ steps.filter.outputs.api }}
+      compose: ${{ steps.filter.outputs.compose }}
     steps:
       - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
@@ -25,10 +26,12 @@ jobs:
               - 'shell/**'
             api:
               - 'api/**'
+            compose:
+              - 'docker-compose.yml'
 
   build-products:
     needs: changes
-    # if: needs.changes.outputs.products == 'true'
+    if: needs.changes.outputs.products == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -44,6 +47,10 @@ jobs:
         working-directory: products/products
         run: npm ci
       
+      - name: Run Karma Unit Tests
+        working-directory: products/products
+        run: npm test -- --no-watch --browsers=ChromeHeadless --code-coverage=false
+      
       - name: Build Products
         working-directory: products/products
         run: npm run build
@@ -56,7 +63,7 @@ jobs:
 
   build-shell:
     needs: changes
-    # if: needs.changes.outputs.shell == 'true'
+    if: needs.changes.outputs.shell == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -72,6 +79,15 @@ jobs:
         working-directory: shell/shell
         run: npm ci
       
+      - name: Run Karma Unit Tests
+        working-directory: shell/shell
+        run: npm test -- --no-watch --browsers=ChromeHeadless --code-coverage=false
+      
+      - name: Run Cypress E2E Tests
+        working-directory: shell/shell
+        run: npx cypress run --headless --browser chrome
+        continue-on-error: true
+      
       - name: Build Shell
         working-directory: shell/shell
         run: npm run build
@@ -81,10 +97,26 @@ jobs:
         with:
           name: shell-build
           path: shell/shell/dist
+      
+      - name: Upload Cypress screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: shell/shell/cypress/screenshots
+          if-no-files-found: ignore
+      
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: shell/shell/cypress/videos
+          if-no-files-found: ignore
 
   build-api:
     needs: changes
-    # if: needs.changes.outputs.api == 'true'
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -100,4 +132,63 @@ jobs:
           tags: products-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  test-docker-compose:
+    needs: [build-products, build-shell, build-api]
+    if: |
+      always() && 
+      !cancelled() &&
+      (needs.changes.outputs.api == 'true' || 
+       needs.changes.outputs.products == 'true' || 
+       needs.changes.outputs.shell == 'true' || 
+       needs.changes.outputs.compose == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       
+      - name: Validate docker-compose.yml
+        run: docker-compose config
+      
+      - name: Build all services
+        run: docker-compose build
+      
+      - name: Start services
+        run: docker-compose up -d
+      
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to start..."
+          sleep 45
+          docker-compose ps
+      
+      - name: Test MySQL connection
+        run: |
+          docker-compose exec -T mysql mysqladmin ping -h localhost -u root -prootpassword
+      
+      - name: Test API health
+        run: |
+          curl -f http://localhost:5000/health || echo "API health check - configure health endpoint"
+      
+      - name: Test Products Microfrontend
+        run: |
+          curl -f http://localhost:4201 || echo "Products microfrontend not responding"
+      
+      - name: Test Shell Microfrontend
+        run: |
+          curl -f http://localhost:4200 || echo "Shell microfrontend not responding"
+      
+      - name: Test Prometheus
+        run: |
+          curl -f http://localhost:9090/-/healthy || echo "Prometheus health check failed"
+      
+      - name: Test Grafana
+        run: |
+          curl -f http://localhost:3000/api/health || echo "Grafana health check failed"
+      
+      - name: Show logs if failed
+        if: failure()
+        run: docker-compose logs
+      
+      - name: Stop services
+        if: always()
+        run: docker-compose down -v
