@@ -44,10 +44,6 @@ jobs:
         working-directory: products/products
         run: npm ci
       
-      - name: Run tests (optional)
-        working-directory: products/products
-        run: npm test || echo "Tests not configured yet"
-      
       - name: Build Products
         working-directory: products/products
         run: npm run build
@@ -75,10 +71,6 @@ jobs:
       - name: Install dependencies
         working-directory: shell/shell
         run: npm ci
-      
-      - name: Run tests (optional)
-        working-directory: shell/shell
-        run: npm test || echo "Tests not configured yet"
       
       - name: Build Shell
         working-directory: shell/shell
