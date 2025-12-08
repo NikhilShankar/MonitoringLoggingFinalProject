@@ -16,9 +16,9 @@ http://localhost:5000/metrics
 http://localhost:3000/dashboards
  (Grafana)
 
-![grf](screenshots/grafana.pnggrafana.png)
+![grf](screenshots/grafana.png)
 
-![logs](screenshots/dockerlogs.png)
+![logs](screenshots/docker%20logs.png)
 
 ![rq](screenshots/requests.png)
 
