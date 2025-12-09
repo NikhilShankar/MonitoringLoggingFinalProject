@@ -10,15 +10,15 @@ describe('ProductsComponent', () => {
   let fixture: ComponentFixture<ProductsComponent>;
   let productService: ProductService;
 
-  // Mock product data
   const mockProducts = [
-    { id: 1, name: 'Laptop Pro', price: 1299.99, category: 'Electronics' },
-    { id: 2, name: 'Smart Watch', price: 299.99, category: 'Electronics' },
-    { id: 3, name: 'Desk Chair', price: 199.99, category: 'Furniture' },
-    { id: 4, name: 'Coffee Maker', price: 79.99, category: 'Appliances' },
-    { id: 5, name: 'Backpack', price: 49.99, category: 'Accessories' },
-    { id: 6, name: 'Headphones', price: 149.99, category: 'Electronics' }
-  ];
+    { id: 1, name: 'Laptop Pro', price: 1299.99, category: 'Electronics', stock: 10 },
+    { id: 2, name: 'Smart Watch', price: 299.99, category: 'Electronics', stock: 8 },
+    { id: 3, name: 'Desk Chair', price: 199.99, category: 'Furniture', stock: 20 },
+    { id: 4, name: 'Coffee Maker', price: 79.99, category: 'Appliances', stock: 15 },
+    { id: 5, name: 'Backpack', price: 49.99, category: 'Accessories', stock: 50 },
+    { id: 6, name: 'Headphones', price: 149.99, category: 'Electronics', stock: 12 }
+];
+
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
