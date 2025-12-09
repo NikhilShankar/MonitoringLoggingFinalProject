@@ -1,20 +1,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ProductsComponent } from './products.component';
+import { ProductService } from './product.service';
 import { By } from '@angular/platform-browser';
+import { of } from 'rxjs';
 
 describe('ProductsComponent', () => {
   let component: ProductsComponent;
   let fixture: ComponentFixture<ProductsComponent>;
+  let productService: ProductService;
+
+  const mockProducts = [
+    { id: 1, name: 'Laptop Pro', price: 1299.99, category: 'Electronics', stock: 10 },
+    { id: 2, name: 'Smart Watch', price: 299.99, category: 'Electronics', stock: 8 },
+    { id: 3, name: 'Desk Chair', price: 199.99, category: 'Furniture', stock: 20 },
+    { id: 4, name: 'Coffee Maker', price: 79.99, category: 'Appliances', stock: 15 },
+    { id: 5, name: 'Backpack', price: 49.99, category: 'Accessories', stock: 50 },
+    { id: 6, name: 'Headphones', price: 149.99, category: 'Electronics', stock: 12 }
+];
+
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ProductsComponent]
+      declarations: [ProductsComponent],
+      imports: [HttpClientTestingModule],
+      providers: [ProductService]
     }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProductsComponent);
     component = fixture.componentInstance;
+    productService = TestBed.inject(ProductService);
+    spyOn(productService, 'getProducts').and.returnValue(of(mockProducts));
     fixture.detectChanges();
   });
 
