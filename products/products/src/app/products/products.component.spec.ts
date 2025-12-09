@@ -3,10 +3,22 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ProductsComponent } from './products.component';
 import { ProductService } from './product.service';
 import { By } from '@angular/platform-browser';
+import { of } from 'rxjs';
 
 describe('ProductsComponent', () => {
   let component: ProductsComponent;
   let fixture: ComponentFixture<ProductsComponent>;
+  let productService: ProductService;
+
+  // Mock product data
+  const mockProducts = [
+    { id: 1, name: 'Laptop Pro', price: 1299.99, category: 'Electronics' },
+    { id: 2, name: 'Smart Watch', price: 299.99, category: 'Electronics' },
+    { id: 3, name: 'Desk Chair', price: 199.99, category: 'Furniture' },
+    { id: 4, name: 'Coffee Maker', price: 79.99, category: 'Appliances' },
+    { id: 5, name: 'Backpack', price: 49.99, category: 'Accessories' },
+    { id: 6, name: 'Headphones', price: 149.99, category: 'Electronics' }
+  ];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,6 +31,8 @@ describe('ProductsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ProductsComponent);
     component = fixture.componentInstance;
+    productService = TestBed.inject(ProductService);
+    spyOn(productService, 'getProducts').and.returnValue(of(mockProducts));
     fixture.detectChanges();
   });
 
