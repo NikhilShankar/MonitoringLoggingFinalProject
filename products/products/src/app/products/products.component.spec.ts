@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductsComponent } from './products.component';
+import { ProductService } from './product.service';
 import { By } from '@angular/platform-browser';
 
 describe('ProductsComponent', () => {
@@ -8,7 +9,8 @@ describe('ProductsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ProductsComponent]
+      declarations: [ProductsComponent],
+      providers: [ProductService]
     }).compileComponents();
   });
 
